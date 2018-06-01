@@ -37,11 +37,14 @@ namespace Bizy.Board.Functions
                 list.Add(new { result, resultToDate, year });
             }
 
-            var results = Enumerable
-                .Range(0, 3)
-                .Select(i => DateTime.Now.AddMonths(i - 3).AddDays(DateTime.Now.Day - 1))
-                .Select(async d => new { Result = await _service.DocInfo(DocInfoMethodsEnum.VenteChiffreAffaire, d.AddDays(30), d), Month = d.ToString("MMM") })
-                .Select(o => new { Label = o.Result.Month, o.Result.Result.Value }).ToList();
+            var list2 = new List<object>();
+            for (int i = 0; i < 6; i++)
+            {
+                var date = DateTime.Now.AddMonths(i - 6).AddDays(DateTime.Now.Day - 1);
+                var value = await _service.DocInfo(DocInfoMethodsEnum.VenteChiffreAffaire, date.AddDays(30), date);
+                var label = date.ToString("MMM");
+                list.Add(new { label, value });
+            }
 
             var salesThisYear = await _service.DocInfo(DocInfoMethodsEnum.VenteChiffreAffaire, DateTime.Now, new DateTime(DateTime.Now.Year, 1, 1));
             var salesPastYear = await _service.DocInfo(DocInfoMethodsEnum.VenteChiffreAffaire, DateTime.Now.AddYears(-1), new DateTime(DateTime.Now.Year, 1, 1).AddYears(-1));
@@ -56,7 +59,7 @@ namespace Bizy.Board.Functions
                 .OrderByDescending(r => r.Sum(o => o.LocalOpenAmount))
                 .Select(r => new {r.FirstOrDefault()?.Address, Amount = r.Sum(o => o.LocalOpenAmount), Count = r.Sum(o => o.OpenDocuments)}).Take(10 == 0 ? 99999 : 10);
 
-            return new OkObjectResult(new { list, results, salesThisYear, salesPastYear, res, res2, values });
+            return new OkObjectResult(new { list, list2, salesThisYear, salesPastYear, res, res2, values });
 
 
         }
