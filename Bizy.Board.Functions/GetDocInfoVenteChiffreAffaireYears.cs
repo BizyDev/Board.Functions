@@ -29,7 +29,7 @@ namespace Bizy.Board.Functions
                     var resultToDate = await service.DocInfo(DocInfoMethodsEnum.VenteChiffreAffaire, date.AddMonths(DateTime.Now.Month).AddDays(DateTime.Now.Day), date);
                     var year = date.Year;
 
-                    list.Add(new { result, resultToDate, year });
+                    list.Add(new { YearToDate = resultToDate.Value, Label = year, Year = result.Value });
                 }
                 return new OkObjectResult(list);
             }
