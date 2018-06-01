@@ -34,16 +34,16 @@ namespace Bizy.Board.Functions
                 var resultToDate = await _service.DocInfo(DocInfoMethodsEnum.VenteChiffreAffaire, date.AddMonths(DateTime.Now.Month).AddDays(DateTime.Now.Day), date);
                 var year = date.Year;
 
-                list.Add(new { result, resultToDate, year });
+                list.Add(new { result.Value, D = resultToDate.Value, year });
             }
 
             var list2 = new List<object>();
             for (int i = 0; i < 6; i++)
             {
                 var date = DateTime.Now.AddMonths(i - 6).AddDays(DateTime.Now.Day - 1);
-                var value = await _service.DocInfo(DocInfoMethodsEnum.VenteChiffreAffaire, date.AddDays(30), date);
+                var result = await _service.DocInfo(DocInfoMethodsEnum.VenteChiffreAffaire, date.AddDays(30), date);
                 var label = date.ToString("MMM");
-                list.Add(new { label, value });
+                list.Add(new { label, result.Value });
             }
 
             var salesThisYear = await _service.DocInfo(DocInfoMethodsEnum.VenteChiffreAffaire, DateTime.Now, new DateTime(DateTime.Now.Year, 1, 1));
@@ -59,9 +59,10 @@ namespace Bizy.Board.Functions
                 .OrderByDescending(r => r.Sum(o => o.LocalOpenAmount))
                 .Select(r => new {r.FirstOrDefault()?.Address, Amount = r.Sum(o => o.LocalOpenAmount), Count = r.Sum(o => o.OpenDocuments)}).Take(10 == 0 ? 99999 : 10);
 
-            return new OkObjectResult(new { list, list2, salesThisYear, salesPastYear, res, res2, values });
-
-
+            return new OkObjectResult(new
+            {
+                list, list2, salesThisYear = salesThisYear.Value, salesPastYear = salesPastYear.Value, PendingPayments = res.Value, PaymentsCalendar = res2.Value, AddressesPendingPayments = values
+            });
         }
     }
 }

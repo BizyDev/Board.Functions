@@ -3,6 +3,7 @@
     using System;
     using Microsoft.AspNetCore.Http;
     using Microsoft.Azure.WebJobs.Host;
+    using OuinneBiseSharp.Extensions;
     using OuinneBiseSharp.Services;
 
     public class Utils
@@ -18,7 +19,7 @@
             if (!int.TryParse(req.Query["folder"], out var folder)) throw new ArgumentOutOfRangeException(nameof(folder), $"{nameof(folder)} n'est pas un nombre entier valide.");
             if (!int.TryParse(req.Query["exercice"], out var exercice)) throw new ArgumentOutOfRangeException(nameof(exercice), $"{nameof(exercice)} n'est pas un nombre entier valide.");
 
-            return new OuinneBiseSharpService(company, username, password, folder, exercice, Environment.GetEnvironmentVariable("WINBIZ_API_KEY"), "BizyBoard");
+            return new OuinneBiseSharpService(company, username, password.Encrypt(), folder, exercice, Environment.GetEnvironmentVariable("WINBIZ_API_KEY"), "BizyBoard");
         }
     }
 }
