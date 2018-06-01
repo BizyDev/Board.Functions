@@ -1,8 +1,10 @@
 ﻿namespace Bizy.Board.Functions
 {
     using System;
+    using System.IO;
     using Microsoft.AspNetCore.Http;
     using Microsoft.Azure.WebJobs.Host;
+    using Newtonsoft.Json;
     using OuinneBiseSharp.Extensions;
     using OuinneBiseSharp.Services;
 
@@ -10,16 +12,19 @@
     {
         public static OuinneBiseSharpService GetService(HttpRequest req, TraceWriter log)
         {
-            string company = req.Query["company"];
-            if (string.IsNullOrWhiteSpace(company)) throw new ArgumentNullException(nameof(company), $"{nameof(company)} est vide.");
-            string username = req.Query["username"];
-            if (string.IsNullOrWhiteSpace(username)) throw new ArgumentNullException(nameof(username), $"{nameof(username)} est vide.");
-            string password = req.Query["password"];
-            if (string.IsNullOrWhiteSpace(password)) throw new ArgumentNullException(nameof(password), $"{nameof(password)} est vide.");
-            if (!int.TryParse(req.Query["folder"], out var folder)) throw new ArgumentOutOfRangeException(nameof(folder), $"{nameof(folder)} n'est pas un nombre entier valide.");
-            if (!int.TryParse(req.Query["exercice"], out var exercice)) throw new ArgumentOutOfRangeException(nameof(exercice), $"{nameof(exercice)} n'est pas un nombre entier valide.");
+            var requestBody = new StreamReader(req.Body).ReadToEnd();
+            if (string.IsNullOrWhiteSpace(requestBody)) throw new ArgumentNullException(nameof(requestBody), "La requête est vide.");
+            
+            var creds = JsonConvert.DeserializeObject<Credentials>(requestBody);
+            
+            if (string.IsNullOrWhiteSpace(creds.Company)) throw new ArgumentNullException(nameof(creds.Company), $"{nameof(creds.Company)} est vide.");
+            if (string.IsNullOrWhiteSpace(creds.Username)) throw new ArgumentNullException(nameof(creds.Username), $"{nameof(creds.Username)} est vide.");
+            if (string.IsNullOrWhiteSpace(creds.Password)) throw new ArgumentNullException(nameof(creds.Password), $"{nameof(creds.Password)} est vide.");
+            if (creds.Folder == null || creds.Folder.Value < 1) throw new ArgumentOutOfRangeException(nameof(creds.Folder), $"{nameof(creds.Folder)} n'est pas un nombre entier valide.");
+            if (creds.Exercice == null || creds.Exercice.Value < 1) throw new ArgumentOutOfRangeException(nameof(creds.Exercice), $"{nameof(creds.Exercice)} n'est pas un nombre entier valide.");
 
-            return new OuinneBiseSharpService(company, username, password.Encrypt(), folder, exercice, Environment.GetEnvironmentVariable("WINBIZ_API_KEY"), "BizyBoard");
+
+            return new OuinneBiseSharpService(creds.Company, creds.Username, creds.Password.Encrypt(), creds.Folder.Value, creds.Exercice.Value, Environment.GetEnvironmentVariable("WINBIZ_API_KEY"), "BizyBoard");
         }
     }
 }

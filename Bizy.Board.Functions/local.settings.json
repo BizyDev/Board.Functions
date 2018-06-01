@@ -1,5 +1,5 @@
 {
-    "IsEncrypted": false,
+    "IsEncrypted": true,
     "Values": {
         "AzureWebJobsStorage": "UseDevelopmentStorage=true",
         "AzureWebJobsDashboard": "UseDevelopmentStorage=true"
